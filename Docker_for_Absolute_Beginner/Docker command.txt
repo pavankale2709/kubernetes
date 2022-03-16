@@ -1,0 +1,83 @@
+docker version -> get docker version
+docker run -> Run container of specified image
+docker run <image_name> <command> -> Run container with command
+docker ps -> list running containers
+docker ps -a -> list containers
+docker stop -> Stop container
+docker rm -> Remove stopped containers
+docker images -> List images
+docker rmi -> Remove image
+docker pull -> Pull image
+docker exec <container_name/id> <command> -> Run command inside docker container
+docker attach <container_name/id> -> Attach to running container
+docker run -d <image_name> -> Run docker container in detached mode
+docker run -i <image_name> -> Maps standard input of host with docker container, interactive mode
+docker run -t <image_name> -> Attach to container terminal
+docker run -it <image_name> <command> -> Attach to container terminal in interactive mode and run specified command
+docker run <image_name:version> -> Take specific version of image, default latest (Tags)
+docker run -p 80:5000 <image> -> Port Mapping: Maps port 80 of docker host to port 5000 of container
+docker run -v /opt/datadir:/var/lib/mysql -> Volume mapping: Maps "/opt/datadir" of docker host to "/var/lib/mysql" of docker container
+docker inspect <container_name/id> -> Inspect container (JSON format details)
+docker logs <container_name/id> -> View container logs (logs written to stdout of the container)
+docker build Dockerfile -t <image_name>
+docker build Dockerfile -t <user/account_name>/<image_name>
+docker build . -f <docker_file_name> -t <image_name>
+docker history <image_name> -> Shows how image is built
+docker push <image_name> -> If you dont specify account, it will try to upload image to default repository "docker.io/library" and you will get error
+docker push <account_name>/<image_name> -> Now image will be push to your docker repository "docker.io/<account_name>"
+docker login -> Log in to your docker account (https://hub.docker.com)
+docker login <private-registry.io> -> Login to your private registry
+docker run <private-registry.io>/<account>/<image>
+docker run -e APP_COLOR=blue <image_name> -> Set environment variables using -e option
+docker run <image_name> <command> -> Override CMD if specified in <image>
+docker run --entrypoint <entrypoint_command> <image_name> <command>
+docker run --name=<container-name> <image-name> -> Name container using --name
+docker run --name=<container-name> --link <container_name_on_which_this_container_depends_on>:<reference_use_in_image_name> <image_name>. This will create entry in /etc/hosts of the <container_name> for the <container_name_on_which_this_container_depends_on> with its ip address.
+docker -H=remote-docker-engine:2375 run <image_name> ->Docker engine is running on another host <remote-docker-engine> and we are executing CLI commands from different host 
+docker run --cpus=.5 --memory=100m <image_name> -> Container should not use more than 50% of host CPUs and 100m memory at any given time
+
+docker volume create <volume_name> -> Create a volume/folder named <volume_name> under /var/log/docker/volumes folder
+docker run -v <volume_name>:<files_location_in_container> <image name> -> Volume mounting
+docker run -v </tmp/folder_name>: <files_location_in_container> <image_name> -> Bind mounting
+docker run --mount type=bind,source=/data/mysql,target=/var/lib/mysql image -> Bing mounting using --mount option, source=host location, target=container location
+docker run --network=<network_name> <image_name> -> Associate different network with image, default bridge
+
+docker network create --driver bridge --subnet 182.18.0.0/16 <custom-isolated-network>
+docker network ls
+
+docker info -> Gives information about installed docker
+docker system df -> Disk consumption by images/containers/volumes
+docker system df -v -> Per images/container/volume consumption
+
+docker-compose up -> Run services/container specified in docker-compose.yml file
+
+docker service create --replicas=100 <image_name> -> Docker Swarm command to launch 100 containers of image_name, must be run on swarm manager not on worker node.
+
+
+-ENTRYPOINT -> Used to specify command/program to run when container starts
+-CMD -> Defines program/process to run when container starts. CMD will be appended to ENTRYPOINT if it is present and then complete command will get executed.
+-WORKDIR -> Set the application directory in container
+-EXPOSE -> Map container port with host port
+-ADD -> Copy files from host into container
+-A container only leaves as long as process inside it is alive.
+-bash: Is a shell that listen for a input from a terminal
+-Docker Compose: With docker compose we can create a configuration file in yaml format (docker-compose.yml) and put together different services and options specific to run them in the file.
+-Docker Registry: Central repository for images
+	-By default images are pulled from docker.io/nginx/nginx (<Registry>/<user or account>/<Image>)
+	-How to deploy private registry: Docker registry is an another application can be deployed as docker image.
+		-docker run -d -p 5000:5000 --name registry registry:2
+		-docker image tag my-image localhost:5000/my-image
+		-docker push localhost:5000/my-image
+-(--rm) flag removes the anonymous volumes associated with the container when the container is removed. Similar to: docker rm -v my-container
+-Docker has a built-in DNS server that helps the container resolve each-other using the container names. Built-in DNS server always run on IP address 127.0.0.11
+-How containers are isolated inside the host? Docker uses network namespaces that creates a separate namespace for each container. It then uses virtual ethernet pairs to connect containers together.
+-Container Orchestration: Container Orchestration solution that consists of set of tools, scripts that can help host containers in production environment. It is a process of automatically deploying and managing containers is called Container Orchestration.
+	-Consists of multiple docker hosts, so that even if one fails, containers can be launched on other hosts
+	-Allow to launch 100s of containers with single command
+	-Launch new container when demand decreases and reduce number of containers when demand decreases.
+	-Adding new host
+	-Advanced networking between containers across hosts
+	-Load balancing request between containers across hosts
+	-Sharing storage between the hosts
+	-Configuration management and security within the cluster
+	-Available solutions: Docker Swarm, Google Kubernetes, Apache MESOS

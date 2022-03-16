@@ -1,0 +1,144 @@
+kubectl run <deployment_name> --image=<image_name> -> Create deployment with pod
+kubectl run --generator=run-pod/v1 <pod_name> --image=<image_name> -> Create pod
+kubectl run <pod_name> --image=<image_name> --restart=Never -> Create pod
+kubectl create deployment <deployment_name> --image=<image_name> -> Create deployment
+kubectl get pods -> Get list od pods
+kubectl get pods -o wide
+kucectl get pod <pod_name> -o wide > <pod_def.yml>
+kubectl cluster-info -> Cluster information
+kubectl get nodes -> Get cluster nodes
+kubectl describe pods -> Describe all pods	
+kubectl describe pod <pod_name> -> Describe specific pod
+kubectl create -f <*-definition.yml> -> Create entity based on kind specified in *-definition.yml file
+kubectl delete deployment <deployment_name> -> Delete deployment
+kubectl get replicationcontroller
+kubectl get replicaset
+kubectl replace -f <replicaset-definition.yml> -> Scale replicaset by updating replicas property in yml file
+kubectl scale --relplicas=<number_of_pods_required> -f <replicaset-definition.yml>
+kubectl scale --relplicas=<number_of_pods_required> replicaset <replicaset_name>
+kubectl describe replicaset
+kubectl delete pod <pod_name> -> Delete a pod
+kubectl delete replicaset <replicaset_name>
+kubectl get all -> Get all objects in cluster
+kubectl get deployments
+kubectl describe deployment
+kubectl rollout status deployment/<deployment_name> -> Check rollout status
+kubectl rollout history deployment/<deployment_name> -> Revisions and history of deployment
+kubectl apply -f <deployment-definition.yml> -> Update deployment
+kubectl set image deployment/<deployment_name> <container_name>=<new_image_name:version> -> Update image used in deployment
+kubectl rollout undo deployment/<deployment_name> -> Rollback deployment
+kubectl create -f <deployment-definition.yml> --record -> Record command used to create deployment in CHANGE-CAUSE column when you check history using 'kubectl rollout history deployment/<deployment_name>' command
+kubectl create -f <service-definition.yml> -> Create Service using definition file
+kubectl get services
+kubectl create -f . -> Create objects using all the yml files in current directory
+kubectl get pods --all-namespaces
+kubectl edit deployment <deployment_name>
+
+
+kubectl get pod <pod-name> -o yaml > pod-definition.yaml -> Extract pod definition to a file
+kubectl edit pod <pod-name> -> Edit pod properties
+kubectl run nginx --image=nginx --restart=Never --dry-run -o yaml -> Generate POD Manifest YAML file (-o yaml). Don't create it(--dry-run)
+kubectl create deployment --image=nginx nginx --dry-run -o yaml -> Create deployment
+	kubectl create deployment does not have a --replicas option. You could first create it and then scale it using the kubectl scale command.
+	kubectl create deployment --image=nginx nginx --dry-run -o yaml > nginx-deployment.yaml
+kubectl expose pod redis --port=6379 --name redis-service --dry-run -o yaml -> Create a Service named redis-service of type ClusterIP to expose pod redis on port 6379
+kubectl create service clusterip redis --tcp=6379:6379 --dry-run -o yaml -> This will not use the pods labels as selectors, instead it will assume selectors as app=redis. You cannot pass in selectors as an option.
+kubectl expose pod nginx --port=80 --name nginx-service --dry-run -o yaml -> Create a Service named nginx of type NodePort to expose pod nginx's port 80 on port 30080 on the nodes. This will automatically use the pod's labels as selectors, but you cannot specify the node port.
+kubectl create service nodeport nginx --tcp=80:80 --node-port=30080 --dry-run -o yaml -> This will not use the pods labels as selectors
+
+
+kubectl get pods --namespace=<namespace_name>
+kubectl create -f <pod-definition.yml> --namespace=<namespace_name>
+kubectl create -f <namespace_definition.yml>
+kubectl create namespace <namespace_name>
+kubectl config set-context $(kubectl config current-context) --namespace=dev -> Switch to 'dev' namespace
+kubectl create -f <compute-resource-quota.yml> -> Configure resource quota for namespaces
+
+
+kubectl create configmap <config_map_name> --from-literal=<key>=<value>
+kubectl create configmap <config_map_name> --from-file=<config_map.properties>
+kubectl create -f <config_map_definition.yml>
+kubectl get configmaps
+kubectl describe configmaps
+kubectl describe configmap <config_map_name>
+
+kubectl create secret generic <secret-name> --from-literal=<key>=<value>
+kubectl create secret generic <secret-name> --from-file=<path-to-file>
+kubectl create -f <secret_definition.yml>
+	How to encode the text on linux box: echo -n '<text-to-encode>' | base64
+	How to decode the encoded text on linux box: echo -n '<encoded-text>' | base64 --decode
+kubectl get secrets
+kubectl describe secrets
+kubectl describe secret <secret-name> -o yaml
+
+docker run --user=1000 ubuntu sleep 3600 -> Run container with user 1000, other than root
+docker run --cap-add MAC_ADMIN ubuntu -> Add capability to root user
+docker run --cap-drop KILL ubuntu -> Remove capability of root user
+docker run --privileged ubuntu -> Run container with all privileges enabled
+
+kubectl create serviceaccount <service-account-name> -> This create service account and a secret to store token used for authentication
+kubectl get serviceaccount
+kubectl describe serviceaccount <service-account-name>
+kubectl describe secret <service-account-name-secret-name> -> View service account secret name
+
+kubectl taint nodes <node-name> key=value:taint-effect
+kubectl describe node kubemaster | grep Taint -> Get taints on master node
+
+kubectl label nodes <node-name> <label-key>=<label-value>
+
+docker logs -f <container-id> -> See container logs
+kubectl logs -f <pod-name> -> See pod logs
+kubectl logs -f <pod-name> <container-name> -> Specify container name in case of multi-container pod
+
+kubectl top node
+kubectl top pod
+
+kubectl get pods --selector app=App1 -> Select pods with specific labels
+
+kubectl create deployment nginx --image=nginx:1.16
+kubectl rollout status deployment nginx
+kubectl rollout history deployment nginx
+kubectl rollout history deployment nginx --revision=1 -> check the status of each revision individually by using the --revision flag
+kubectl set image deployment nginx nginx=nginx:1.17 --record -> We can use the --record flag to save the command used to create/update a deployment against the revision number.
+kubectl edit deployments. nginx --record
+kubectl rollout undo deployment nginx
+kubectl describe deployments. nginx | grep -i image:
+
+kubectl create -f <job-definition.yml>
+kubectl get jobs
+kubectl logs <pod-name>
+kubectl delete job <job-name>
+
+kubectl create -f <cron-job-definition.yml>
+kubectl get cronjob
+
+kubectl create -f <ingress-controller-definition.yml>
+kubectl create -f <ingress-resource-definition.yml>
+kubectl get ingress
+
+kubectl create -f <network-policy-definition.yml>
+
+kubectl create -f <persistent-volume-definition.yml>
+kubectl get pv
+
+kubectl create -f <pvc-definition.yml>
+kubectl get persistentvolumeclaim
+kubectl delete persistentvolumeclaim <pvc-name>
+
+kubectl create -f <storage-class-definition.yml>
+
+kubectl create -f <stateful-set-definition.yml>
+kubectl get statefulset
+kubectl scale statefulset <stateful-set-name> --replicas=5
+kubectl delete statefulset <stateful-set-name>
+
+
+
+
+
+-Kubernetes is the open-source system for automatic deployment, scaling, and management of containerized applications.
+-When you first create a deployment, it triggers a rollout. A new rollout creates a new deployment revision. In future when container version is updated, a new rollout is triggered and a new deployment revision is created. This helps us keep track of changes make to out deployment and enables us to rollback to previous version of deployment if necessary.
+-(--dry-run): By default as soon as the command is run, the resource will be created. If you simply want to test your command, use the --dry-run option. This will not create the resource, instead, tell you whether the resource can be created and if your command is right.
+- (-o yaml): This will output the resource definition in YAML format on the screen.
+-Context: Contexts are used to manage multiple clusters and multiple environments from same management system.
+-To limit resources in namespace, create resource quota.

@@ -1,0 +1,135 @@
+-For CentOS
+	-uname -r
+
+	-cd /etc/yum.repos.d
+
+	-vim docker.repo
+	[dockerrepo]
+	name=Docker Repository
+	baseurl=https://yum.dockerproject.org/repo/main/centos/7/
+	enabled=1
+	gpgcheck=1
+	gpgkey=https://yum.dockerproject.org/gpg
+
+	-yum update
+
+	-yum install -y docker-engine
+	
+	-systemctl enable docker
+	
+	-systemctl start docker
+	
+	-docker --version
+	
+	-docker images
+	
+	-If you run "docker images" using non-root user, you will not be able to see result.
+		-cd /var/run
+		-There is file docker.sock and it has permission as root:docker
+		-cat /etc/group | grep docker => docker:x:988:
+		-You will see no user added in docker group.
+		-To add user in docker group: usermod -a -G docker <cpit>
+		-If you now check "docker images", you will be able to list images.
+		
+
+-Difference between docker engine and docker.io
+	-For Dabian/Ubuntu, we install docker.io not docker engine.
+
+
+-Working with Base images
+	-docker images
+	-docker search <centos>
+	-docker pull <image_name>
+	-docker run <image_name/id>
+	-docker inspect <image_name/id>
+	
+	
+-Instantiating Containers
+	-docker run <image_name>
+	-docker run --name=<container_name> <image_name>
+	-docker ps
+	-docker ps -a
+	-ifconfig
+		-Ip addresses for docker are based upon automatically installed "docker0" interface and the default network 172.17.0.1/16
+	-docker run -it centos:latest /bin/bash
+		-i - interactive mode
+		-t - connected to terminal
+	-docker stop <container_name/id>
+	
+	
+-Container Lifecycle
+	-Get attach with container: docker attach <container_name>
+		-If you exit using this command, container will stop.
+		-Here you are getting attached with the command which container runs when it get started.
+	-Restart the stopped container (as long as process under them can be restarted)
+		-docker restart <container_name/id>
+			OR
+		-docker start <container_name/id>
+	-Execute command on running container without affecting the command or process started by container when it is started.
+		-docker exec -it <container_name/id> <command>
+			-docker exec -it <container_name/id> /bin/bash
+		-If you exit using this command, container will not stop. 
+		
+		
+		
+-Image and Container Management
+	-Remove image: docker rmi <image_name/id>
+	-Remove stopped container: docker rm <container_name/id>
+	-To list all docker containers based on centos:7 run the following linux command:  docker ps -a | awk '{ print $1,$2 }' | grep centos:7 | awk '{print $1 }'
+	-To remove all docker containers based on centos:7 run the following linux command:  docker ps -a | awk '{ print $1,$2 }' | grep centos:7 | awk '{print $1 }' | xargs -I {} docker rm {}
+	-Forcefully remove image: docker rmi -f <image_name/id>
+		-It will remove image, not container (if container exists stopped/running).
+		-It runs container because container is whole snapshot including base image.
+	-List of stopped containers: docker ps -a -q
+	-Remove all stopped containers: docker rm `docker ps -a -q`
+	-
+	
+	
+-Redirection - Ports and Volumes
+	-docker port <container_name/id> $CONTAINERPORT
+	-Assign any host port to container port: docker run -P <image_name>
+	-Assign specific host port to container port: docker run -p <local_port>:<container_port> <image_name>
+	-docker run -v /mnt/data <image_name> => Create mount inside container /mnt/data
+	-docker run -d -p 8080:80 -v /homw/user/www:/usr/share/nginx/html nginx
+	
+		
+
+-The Dockerfile
+	-By default root is the only user that get created in container.
+	-All the commands specified using RUN keyword are run by root user
+	-docker build -t <image_tag> .
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

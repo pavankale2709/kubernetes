@@ -1,0 +1,550 @@
+-Kubernetes Overview
+	-Also known as K8s, build by google based on their experience running container in production.
+	-Most popular Container Orchestration technology available
+	-https://www.virtualbox.org
+	-https://www.osboxes.org/
+	-apt-get install docker.io
+	-Container Orchestration
+		-Process of automatically managing and deploying containers is known as Container Orchestration.
+		-Orchestration technologies
+			-Docker Swarm
+			-Kubernetes
+			-MESOS
+		-Advantages of container orchestration
+			-Highly available as hardware failure does not bring your application as you have multiple instances of your application on different nodes
+			-User traffic is load balanced across multiple containers
+			-Auto-Scaling
+	-Kubernetes Architecture
+		-Nodes/ Minions/ Worker 
+			-Physical and virtual machine on which kubernetes is installed
+			-Worker machine on which containers will be launced by kubernetes
+		-Cluster
+			-Set of nodes grouped together
+		-Master
+			-Master is a node with kubernetes installed on it and is configured as master.
+				-Responsible for managing cluster
+				-Stores information regarding members of cluster
+				-Monitors nodes. If a node fails, moves workload of failed node to worker node
+				-Responsible for actual orchestration of containers on worker node
+	-Kubernetes Components
+		-API Server
+			-Act as front-end for kubernetes.
+			-Users, management devices, CLIs all talk to the API Server to interact with kubernetes cluster.
+		-etcd server
+			-Distributed reliable key-value store used by kubernetes to store all data used to manage the cluster.
+			-Responsible for implementing logs in the cluster insuring there is no conflicts between the masters.
+		-kubelet service
+			-Agent that runs on each node on the cluster.
+			-Agent is responsible for making sure that the containers on the node are running as expected.
+		-Container Runtime engine (like docker)
+			-Is the underlying software used to run containers.
+			-Which of the following is the underlying framework that is responsible for running application in containers like Docker? - container runtime
+		-Controllers
+			-Is the brain behind orchestration.
+			-Responsible for noticing and responding when nodes, containers or endpoints goes down. The controllers makes decision on bringing up new containers in such cases.
+		-Schedulers
+			-Responsible for distributing work/container across multiple nodes.
+			-It looks for newly created containers and assigns them to nodes.
+	-Master vs Worker nodes
+		-Worker Node
+			-Container runtime (Docker/rkt/CRI-O): To run docker containers on system we need container runtime (Docker/rkt/CRI-O) installed, so it will be present on worker nodes.
+			-kubelet agent: Responsible for interacting with master to provide health information of worker node and carry-out actions requested by master on worker nodes.
+		-Master Node
+			-kube-apiserver: Master server has kube-apiserver and thats what make it master.
+			-etcd: All the information gathered to manage the cluster is stored on key-value store, etcd. The key-value store is based on popular hcd framework.
+			-controller manager
+			-scheduler
+	-kubectl (kube control)
+		-Kubernetes CLI used to manage and deploy applications on kubernetes cluster, to get cluster related informarion, to get node status etc.
+		-Deploy application: kubectl run hello-minikube
+		-View cluster information: kubectl cluster-info
+		-List nodes in the cluster: kubectl get nodes
+		-kubectl run my-web-app --image=my-web-app --replicas=100
+
+
+
+
+-Kubernetes Setup - Introduction and Minikube
+	-There are verious ways to setup kubernetes:
+		-Minikube
+			-Tool used to setup a single instance of kubernetes in all in one setup.
+		-Kubeadm
+			-Tool used to configure kubernetes in a multi-node setup on our local machines.
+		-Hosted solutions in cloud
+			-GCP
+			-AWS
+		-play-with-k8s.com
+	-Minikube
+		-Bundles all the kubernetes components into a single image providing us a pre-configured single node kubernetes cluster so that we can get started in a mater on minutes. Whole bundle is packaged into an ISO image and is available online for download.
+		-Minicube runs a single node kubernetes cluster inside a VM on your laptop. 
+		-You don't need to download IO image manually, Minikube provides executable command line utility that will download ISO and deploy in virtualization platform Oracle VirtualBox or VMWare fusion.
+		-For interacting with kubernetes cluster, you must have kubectl command line utility installed on your machine.
+	-Demo - Minikube
+		-https://kubernetes.io/docs/setup/learning-environment/minikube/
+	-Kubernetes Documentation Site: https://kubernetes.io/docs/
+	-Kubernetes Documentation Concepts: https://kubernetes.io/docs/concepts/
+	-Kubernetes Documentation Setup: https://kubernetes.io/docs/setup/pick-right-solution/
+	-Kubernetes Documentation - Minikube Setup: https://kubernetes.io/docs/getting-started-guides/minikube/
+	-Kubeadm (kube admin)
+		-kubeadm tool used to setup a multi-node cluster with master and workers on separate machines.
+		-Installing all these components individually on different nodes and modifying configuration files to make it work is a tedious task.
+		-kubeadm tool helps us to do that very easily in an automated fashion.
+		-Steps:
+			-1) You must have multiple machines/servers created for configuring cluster. Designate one as master and others as node.
+				-Disable swap on all machines
+					-swapoff -a
+					-vi /etc/fstab => Comment swap entry
+			-2) Install container runtime (docker) on all nodes. (https://docs.docker.com/install/linux/docker-ee/centos/)
+				-sudo yum remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine
+				-sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+				-sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+				-sudo yum install docker-ce docker-ce-cli containerd.io
+					-If you phase any issue:  subscription-manager repos --enable=rhel-7-server-extras-rpms
+						-https://stackoverflow.com/questions/45272827/docker-ce-on-rhel-requires-container-selinux-2-9/45287245
+					-Check /etc/yum.repos.d/ folder
+				-sudo systemctl start docker.service
+			-3) Install kubeadm on all nodes (https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/)
+				-Helps us bootstrap the kubernetes solution by installing and configuring all the required components in the right nodes.
+				-Installing kubeadm, kubelet and kubectl
+					-kubeadm: the command to bootstrap the cluster.
+					-kubelet: the component that runs on all of the machines in your cluster and does things like starting pods and containers.
+					-kubectl: the command line util to talk to your cluster.
+				-cat /etc/yum.repos.d/kubernetes.repo
+					[kubernetes]
+					name=Kubernetes
+					baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+					enabled=1
+					gpgcheck=1
+					repo_gpgcheck=1
+					gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+				-SELinux in permissive mode is disabled. This is required to allow containers to access the host filesystem, which is needed by pod networks for example.
+					-setenforce 0
+					-sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+				-yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+				-systemctl enable --now kubelet
+			-4) Initialize master server
+				-All the required components are installed and configured on master server, so that we can start cluster level configuration from master server.
+				-kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.135.47.237
+					-Optional on master: -kubeadm config images pull
+					-Before running above command you can perform following steps on all servers to avoid warnings:
+						-systemctl enable docker.service
+						-cat /etc/docker/daemon.json				(https://kubernetes.io/docs/setup/production-environment/container-runtimes/)
+								{
+								  "exec-opts": ["native.cgroupdriver=systemd"],
+								  "log-driver": "json-file",
+								  "log-opts": {
+									"max-size": "100m"
+								  },
+								  "storage-driver": "overlay2"
+								}
+						-mkdir -p /etc/systemd/system/docker.service.d
+						-systemctl daemon-reload
+						-systemctl restart docker
+					-You will get command as output of "kubeadm init" command, which will be used by worker nodes to join master. 
+			-5) POD Network
+				-Kubernetes requires a special network between the master and worker nodes called as POD network/cluster network.
+				-kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/62e44c867a2846fefb68bd5f178daf4da3095ccb/Documentation/kube-flannel.yml
+					-Verification: Once a pod network has been installed, you can confirm that it is working by checking that the CoreDNS pod is Running in the output of "kubectl get pods --all-namespaces"
+			-6) Join worker nodes to master node.
+				-You can join any number of worker nodes by running the following on each as root:
+					-kubeadm join 10.135.47.237:6443 --token p39n4q.rchl2f245uf09fod --discovery-token-ca-cert-hash sha256:23f42b17cb6dae7383e81ac55e3a339f5dcdd2eb71a7b914a430d9a4aed8acdf
+					-To create new token: kubeadm token create
+				-To check if worker node join the master or not, run following command on master: kubectl get nodes
+				-Test: 
+					-kubectl run nginx --image=nginx
+					-kubectl get pods
+					-kubectl delete deployment/nginx
+		-Oracle VirtualBox:  https://www.virtualbox.org/
+		-Link to download VM images: http://osboxes.org/
+		-Link to kubeadm installation instructions: https://kubernetes.io/docs/setup/independent/install-kubeadm/
+	-Kubernetes on GCP
+		-Kubernetes Engine (GKE) is a managed, production-ready environment for deploying containerized applications.
+		-https://cloud.google.com/kubernetes-engine/
+		-https://cloud.google.com/kubernetes-engine/docs/
+		-https://cloud.google.com/kubernetes-engine/docs/quickstart
+		
+
+
+
+-Kubernetes Concepts: PODs
+	-Kubernetes does not deploy containers directly on worker nodes. 
+	-Containers are encapsulated into a kubernetes object known as PODs.
+	-A POD is a single instance of an application.
+	-A POD is the smallest object that you can create in the kubernetes.
+	-POD usually have one-to-one relationship with container running your application. To scale-up, you create POD and to scale down, you delete existing POD. You do not add additional containers in existing POD to scale your application.
+	-Multi-Container PODs
+		-Are we restricted to have single container in a POD? => NO
+		-A single POD can have multiple containers except for the fact that there are usually not multiple containers of same the kind.
+		-Sometime you create helper container that might be doing some kind of supporting task to web application such processing files, user data etc.
+		-Two container can also communicate with each other directly using localhost as they share same network space plus they can easily share same storage space.
+	-kubectl
+		-kubectl run nginx --image=nginx
+			-Deploys a docker container by creating a POD.
+			-Creates POD automatically and deploys instance of nginx docker image.
+			-Where does it get application image from? For that you need to specify image name using --image parameter. nginx image get downloaded from docker hub repository.
+			-You can configure kubernetes to get images from public docker hub repository or private repository within organization.
+	-kubectl get nodes
+	-kubectl run nginx --image=nginx
+	-kubectl get pods
+	-kubectl describe pods
+	-kubectl describe pods <pod-name>
+	-kubectl get pods -o wide
+	-kubectl delete deployment/nginx
+	-Kubernetes Concepts - https://kubernetes.io/docs/concepts/
+	-Pod Overview- https://kubernetes.io/docs/concepts/workloads/pods/pod-overview/
+		
+
+
+-YAML Introduction
+	-What is YAML?
+		-YAML file is used to represent configuration data.
+	-YAML
+		-Key Value pair 
+			-Key and value separated by colon. You must have a space followed by colon differentiating key and the value.
+		-Array/Lists
+			-(-) indicates, it is an element of an array.
+			-Ordered collection
+		-Dictionary/Map 
+			-Set of properties grouped together under an item.
+			-Unordered collection
+	-Line beginning with # will be considered as comment.
+
+
+
+
+
+-PODs with YAML
+	-Kubernetes uses YAML file as input for creation of objects such as PODs, Replicas, deployments, services etc.
+	-Kubernetes configuration file (pod-definition.yml) always contains four top level elements. This are must to have fields.
+		-apiVersion
+			-v1 or apps/v1
+		-kind
+			-Type of object (Pod or ReplicaSet or Deployment or Service) we are trying to create
+		-metadata (Dictionary)
+			-Data about objects like name, labels etc.
+		-spec
+			-Specification section
+	-Example:
+		apiVersion: v1
+		kind: Pod
+		metadata:
+			name: myapp-pod
+			labels:
+				app: myapp
+				type: front-end
+		spec:
+			containers:
+				- name: nginx-controller
+				  image: nginx
+	-kubectl create -f pod-definition.yml
+	-Download Community version of PyCharm: https://www.jetbrains.com/pycharm/
+	-PyCharm Plugin to get suggestions (ctl+space): https://plugins.jetbrains.com/plugin/9354-kubernetes-and-openshift-resource-support
+	-YAML file validation: http://www.yamllint.com/
+	
+	
+	
+-Replication Controllers and ReplicaSets
+	-Controllers are the brain behind kubernetes. They are the processes that monitors kubernetes objects and respond accordingly.
+	-Replication Controller
+		-Replication controller helps us to run multiple instances of a single POD in kubernetes cluster thus providing high availability.
+		-Does that mean when you have single POD, replication controller does not come into picture? No. When you have a single POD, the replication controller can still help by automatically bringing up a new POD when the existing one fails.
+		-Replication controller ensures that specified number of PODs are running at all time (may be 1 or 100).
+		-Load balancing and Scaling: 
+			-Replication controller is required to create multiple PODs to share load across them.
+			-Replication controller spans across the multiple nodes in the cluster for balancing the load on the nodes of the cluster.
+		-How to create replication controller (rc-definition.yml)
+			-Example:
+				apiVersion: v1
+				kind: ReplicationController
+				metadata:
+				  name: myapp-rc
+				  labels:
+					app: myapp
+					type: front-end
+				spec:
+				  template:
+					metadata:
+					  name: myapp-pod
+					  labels:
+						app: myapp
+						type: front-end
+					spec:
+					  containers:
+						- name: nginx-controller
+						  image: nginx
+				  replicas: 3
+			-kubectl create -f rc-definition.yml
+			-kubectl get replicationcontroller
+	-Replication Container is the older technology that is now replaced by Replica Set. Replica Set is the new recommended way to set up replication. There is minor difference in the way they both works.
+	-How to create ReplicaSet (replicaset-definition.yml)
+		-Example:
+			apiVersion: apps/v1
+			kind: ReplicaSet
+			metadata:
+			  name: myapp-replicaset
+			  labels:
+				app: myapp
+				type: front-end
+			spec:
+			  template:
+				 metadata:
+					  name: myapp-pod
+					  labels:
+						app: myapp
+						type: front-end
+					spec:
+					  containers:
+						- name: nginx-controller
+						  image: nginx
+			  replicas: 3
+			  selector:
+				matchLabels:
+				  type: front-end
+		-kubectl create -f replicaset-definition.yml
+		-kubectl get replicaset
+		-kubectl describe replicaset
+		-kubectl delete replicaset <name_of_replicaset>
+		-kubectl delete pod <pod_name>
+		-Selection section help replicaset to identify what PODs fall under it. Why do we need to specify which all PODs are managed by replicaset even though they are defined in spec section? It is because, replicaset can also manages PODs that are not part of replicaset creation. It can monitor already created PODs as well. This is the major difference between replication controller and replicaset. selector is not required field in case of replication controller, but it is available to use. When you skip it, it assumes it to be same as labels provided in POD definition. In case of replicaset, user input is required for selector property. ReplicaSet provides many configuration options for matching labels that are not available in replication controller. 
+	-Labels and Selectors
+		-ReplicaSet is a process that monitors the POD (existing pods as well). How does replicaset knows what PODs to monitor? There could be 100's of PODs in the cluster. This is where labeling our PODs during creation comes handy.
+	-How to scale replicas?
+		-1) Update number of replicas in definition file and run command:
+			kubectl replace -f replicaset-definition.yml
+		-2) Use same file and run command: 
+			kubectl scale --replicaset=6 -f replicaset-definition.yml
+		-3) kubectl scale --replicaset=6 <TYPE> <NAME>
+				kubectl scale --replicaset=6 replicaset myapp-replicaset
+	-What happens, if you try to create new pod outside of the definition of replicaset having same label using pod defintion file? ReplicaSet will not allow you to create PODs with same label. If you create POD with different label, then no problem.
+	-If you delete a POD created by replicaset, replicaset will notice that and immediately bring up new POD to match replicas value.
+	-Other controllers are: Endpoint controller, Namespace controller, Service Account controller
+
+
+
+-Deployments
+	-Deployment provides us with the capability to upgrade the underlying instances seemlessly using rolling updates, undo changes, pause and resume changes as required.
+	-deployment-definition.yml => Content are exactly similar to replicaset-definition.yml except for the kind. Replicaset automatically creates a replicaset.
+		-Example:
+			apiVersion: apps/v1
+			kind: Deployment
+			metadata:
+			  name: myapp-deployment
+			  labels:
+				app: myapp
+				type: front-end
+			spec:
+			  template:
+				 metadata:
+					  name: myapp-pod
+					  labels:
+						app: myapp
+						type: front-end
+					spec:
+					  containers:
+						- name: nginx-controller
+						  image: nginx
+			  replicas: 3
+			  selector:
+				matchLabels:
+				  type: front-end
+		-kubectl create -f deployment-definition.yml
+		-kubectl get deployments
+		-kubectl get replicaset
+		-kubectl get pods
+		-kubectl get all
+		-kubectl describe deployment
+	-Deployment - Updates and Rollback
+		-Rollout and Versioning
+			-When you first creates a deployment, it triggers a rollout. A new rollout creates a new deployment revision (Lets say Revision 1).
+			-In the future, when the application is updated (meaning when container version is updated to a new one), a new rollout is triggered and a new deployment revision is created (Say Revision 2).
+			-This helps us to keep track of changes made to our deployment and enables us to rollback to previous version of deployment if necessary.
+		-Check status of rollout: kubectl rollout status deployment/app-deployment
+		-Check revision and hisory of rollout: kubectl rollout history deployment/app-deployment
+		-Deployment strategy
+			-There are 2 types of deployment strategies:
+				-1) Receate deployment strategy
+					-Destroy all old versions of application instances and then create new versions of application instances. Meaning, first destroy all running instances, then deploy new instances of new application version. 
+					-Problem: Application is down and inaccessible to user for the time when all the instances of old application are destroyed and at least one instances of new application comes up. 
+				-2) Rolling update (default)
+					-Take down the older version and bring up the new version one by one.
+					-This way application never goes down and upgrade is seemless.
+		-kubectl apply: How to update deployment?
+			-Updating application version by updating the version of docker container used, updating labels, number of replicas etc.
+			-Once we do necessory changes in deployment-definition.yml, you can run following command to apply the changes. A new rollout is triggered and a new revision of the deployment is created.
+				-kubectl apply -f deployment-definition.yml
+			-You can use "kubectl set image" command to update image of your application. But in this way deployment-definition.yml file will remain with old version of image.
+				-kubectl set image deployment/myapp-deployment nginx=nginx:1.9.1
+		-How deployment perform upgrade under-the-hood?
+			-When a new deployment is created (say to deploy 5 replicas), it first creates a replica set automatically which in-tern creates the pods to meet the number of replicas.
+			-When you upgrade an application, kubernetes deployment object creates a new relica set under-the-hood and starts deployment of pods there, at the same time taking down the pods from old replica set, following rolling update strategy.
+			-kubectl get replicasets   => will show 2 replicaset during upgrade
+			-Rollback
+				-kubernetes rollback allow you to rollback to previous revision. To undo changes run below command. Deployment will destroy the pods in new replica set and bring the older pods up in older replica set.
+					-kubectl rollout undo deployment/myapp-deployment
+		-kubectl run
+			-kubectl run nginx --image=nginx => This command creates a deployment not just a pod. This is another way of creating deployment, without using deployment definition file, required replica set and pod are automatically created in backend. Using definition file is recommended as you can save it in repositoty and modify if required.
+	-Summary
+		-Create: 	kubectl create -f deployment-definition.yml
+					kubectl create -f deployment-definition.yml --record  => Record the CHANGE-CAUSE
+		-Get: kubectl get deployment
+		-Update: 	kubectl apply -f deployment-definition.yml
+					kubectl set image deployment/myapp-deployment nginx-controller=nginx:1.9.1
+		-Status:	kubectl rollout status deployment/myapp-deployment
+					kubectl rollout history deployment/myapp-deployment
+		-Rollback: kubectl rollout undo deployment/myapp-deployment
+		-Delete: kubectl delete deployment myapp-deployment
+	
+
+
+
+
+-Networking in Kubernetes
+	-Single node cluster
+		-In kubernetes world, IP address is assigned to a POD. Each POD in the kubernetes gets it's own internal IP address.
+		-When kubernetes is initially configured, we create an internal private network with the address(say 10.244.0.0) and all the pods are attached to it.
+		-When you deploy pods, each one of them gets separate IP assigned from this network. Pods can communicate with eachother using this IP.
+		-But accesssing pods using this internal ip address may not be a good idea as IP address subject to change when pods are recreated.
+	-Multi-node cluster
+		-When kubernetes cluster is setup, it does not automatically setup any kind of networking. Kubernetes expect us to setup networking to meet certain fundamental requirements.
+			-All containers/PODs can communicate to one another without NAT.
+			-All nodes can communicate with all containers and vice-versa without NAT. 
+		-There are multiple solutions available for setting up network like CISCO,  ACI networks, cilium, flannel, vmware NSX, calico etc
+		-Flannel or other networking solution you are using, manages the networks and IPs in the nodes and assign different network address to each network in the node. This creates a virtual network of all pods and nodes where they are all assigned unique IP address. By using simple routing technique, the cluster networking enables communication between pods or nodes to meet the network requirements of kubernetes.
+	-
+
+
+
+
+Kubernetes Services
+	-Kubernetes services 
+		-Enables communication between various components within and outside of the application.
+		-Helps us to connect applications together with other applications and users.
+		-Enables loose coupling between micro services in our application.
+	-Service - NodePort
+		-NodePort service listen to a port on the node and forward request to the pod. This service makes an internal pod accessible on the port of the node.
+		-This service is like a virtual server inside the node. Inside the cluster, it has its own IP address and that IP address is called cluster IP address of the service.
+		-NodePort range: 30000 - 32767
+		-How to create Service?
+			-Service mapped to a single node single pod
+				-service-definition.yml
+					-Example:
+						apiVersion: v1
+						kind: Service
+						metadata:
+						  name: myapp-service
+						spec:
+						  type: NodePort
+						  ports:
+							- targetPort: 80
+							  port: 80
+							  nodePort: 30008
+						  selector:
+							- app: myapp
+					-kubectl create -f service-definition.yml
+					-kubectl get services
+				-If you don't provide the targetPort, it is assumed to be same as port.
+				-If you don't provide the nodePort, a free port in the range of 30000-32767 is automatically allocated.
+				-How to connect service with the POD? => labels and selectors are used for this.
+			-Service mapped to a single node multiple pod
+				-In this case more than one pod have same label. 
+				-When service is created, it looks for matching pods with the label specified in selector section and find multiple pods.
+				-Service automatically selects all the pods as endpoints to forward the external request coming from the user.
+				-You don't have to do any additional configuration to make this happen.
+				-It used "Random" algorithm (SessionAffinity: Yes), thus service act as build-in load balancer to distribute load across pods.
+			-Service mapped to a multiple node multiple pod
+				-When we create a service, kubernetes creates a service that spans across all the nodes in the cluster and mapped the target port to the same node port on all the nodes in the cluster.
+				-In this way, you can access application using the IP of any node in the cluster and using the same port number.
+			-So in any type of configuration, service is created in same way. You don't have to do any additional thing.
+			
+	-Service - ClusterIP
+		-ClusterIP service creates a virtual IP inside the cluster, to enable communication between different services such as set of front-end servers to set of backend servers.
+		-What is the best way to establish connectivity between tiers/services (front-end, back-end, db) of our application?
+			-Pods have IP's associated with them but these IPs are not static. These pods can go down at any time and new pod will get new IP address. So you cannot rely on IP address for internal communication between application.
+			-A kubernetes service can help us to group pods together and provide a single interface to access the pods in a group. The request will be forwarded to one of the pod under the service randomly.
+			-This enables us to easily and effectively deploy a micro-services based application on kubernetes cluster.
+			-Each layer can now scale or move as required without impacting communication between the various services.
+			-Each service get an IP and name assigned to it inside the cluster. This name should be used by other PODs to access the service.
+			-This type of service is known as ClusterIP.
+		-Example:
+			-service-definition.yml
+				-Example:
+					apiVersion: v1
+					kind: Service
+					metadata:
+					  name: back-end
+					spec:
+					  type: ClusterIP
+					  ports:
+						- targetPort: 80
+						  port: 80
+					  selector:
+						app: myapp
+						type: back-end
+			-To link service to set of pods, we use "selector".
+			
+	-Service - LoadBalancer
+		-Provision load balancer for our application in supported cloud provider.
+		-Used to expose pod port to outside world.
+		-This service is available in cloud environment like GKE, AKE. 
+		-For using this, you need to check first whether it is available or not.
+
+
+
+-Kubernetes completely uninstall
+	-https://medium.com/@meysam1369/kubernetes-completely-uninstall-3f2a83dd985d
+
+-The Ultimate Guide to Disaster Recovery for Your Kubernetes Clusters
+	-https://medium.com/velotio-perspectives/the-ultimate-guide-to-disaster-recovery-for-your-kubernetes-clusters-94143fcc8c1e
+
+
+
+
+Kubernetes setup using Kubeadm
+	-Setup VMs
+		-Configure hostname in /etc/hostnams
+		-Configure /etc/hosts
+		-Disable swap: swapoff -a     and  edit /etc/fstab
+	-Install container runtime (docker) on all nodes
+		-Install docker version supported by kubernetes
+	-Install kubeadm on all nodes. kubeadm tool helps us bootstrap the kubernetes solution by installing and configuring all the required components in the right node.
+		-https://www.udemy.com/course/learn-kubernetes/learn/lecture/9723310#overview
+		-Install 
+			-kubeadm: the command to bootstrap cluster
+			-kubelet: the component that runs on all the machines in your cluster and does things like starting pods and container 
+			-kubectl: the command line util to talk to your cluster
+	-Initialize master nodes. All required components are installed and configured on master server so that we can start cluster level configuration from master server.
+	-POD Network/Cluster network
+		-Ensure that network prerequisites are mate before joining worker nodes with master node.
+	-Join worker nodes to master node.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

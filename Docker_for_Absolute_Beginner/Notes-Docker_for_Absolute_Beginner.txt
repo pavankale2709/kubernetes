@@ -1,0 +1,625 @@
+-Docker for the Absolute Beginner - Hands On - DevOps
+	-Learn Docker with Hands On Coding Exercises. For beginners in DevOps
+	
+	
+
+-Ansible - Orchestration tool
+
+-Why do we need docker?
+	-Compatibility/Dependency (between hardware/libraries/OS and Web Server/DB)
+	-Long setup time
+	-Different Dev/Test/Prod environments
+	
+-What can docker do?
+	-With docker we can run each component in seperate container with its own dependencies and its own libraries all on the same OS/VM within seperate environments or containers.
+	-Containerize applications
+	-Run each service with its own dependencies in separate containers
+	-Docker is container-based application framework, which wrap of a specific application with all its dependencies in a container. Docker containers can easily to ship to a remote location on start there without making entire application setup.
+	
+-What are containers?
+	-Containers are completely isolated environment as in they can have their own processes, services, network interfaces, mounts just like virtual machines except they share same OS Kernel.
+	-Types of containers are: LXC, LXD, LXEFS etc.
+	-Docker utilizes LXC containers.
+	-Setting up these container environments is hard as they are very low level, that is where Docker offers a high level tool with several powerful functionalities making it very easy for end user.
+	
+-Operating System
+	-OS consists of two things: OS Kernel and set of softwares
+	-OS Kernel is responsible for interacting with underlying hardware.
+	-As OS Kernel is same, the software above OS Kernel makes operating systems different. These software may consists of different user experience, drivers, compilers, file manager tools etc.
+
+-We say, docker container share underlying kernel, what does that means (Sharing the Kernel)?
+	-We have system with Ubuntu OS with Docker installed on it. Docker can run any flavour of OS on top of it as long as they are based on same kernel (in this case Linux).
+	-If underlying OS is Ubuntu, Docker can run container based on another distribution like debian, fedora, suse, centos.
+	-Each docker container only have an additional software that makes this OS different and docker uses underlying kernel of the docker host which works with all the OS above.
+	-Windows OS did not share same kernel as linux, so you won't be able to run windows based container on docker host with linux on it. For that, you will need docker on Windows server.
+	-But you can create linux container on Windows machine, How? => When you install docker on windows and run linux container on windows, you are not really running linux container on windows. Windows runs a linux container on linux virtual machine under the hood.
+	-Does it not a disadvantage to run another kernel on the OS? No, because unlike hypervisors, docker is not meant to virtualize and run different OSs and kernels on same hardware. The main purpose of docker is to package and containerize application and to ship them and to run them anywhere, anytime as many times as you want.
+	
+-Containers vs Virtual Machines
+	-Docker: Hardware -> OS -> Docker -> Containers (Libraries, dependencies, application)
+	-Host/VM: Hardware -> Hypervisor -> VMs (OS, Libraries, dependencies, application)
+	-Each VM has its own OS. The overhead cause higher utilization of underlying resources as there are multiple virtual OSs and kernels running. Also VM consume higher disk space as each VM is heavy and usually in GBs, whereas docker containers are light, usually in MBs. This allows docker container boot-up faster where as VMs usually takes minutes to boot-up as it need to boot-up entire OS.
+	-Docker has less isolation as resources are shared between containers like kernel whereas VMs has complete isolation from each other.
+	-Earlier we used to provision a VM for each application but now you might provision a VM for hundreds of containers. So how it is done?
+		-Most organizations have their products containerized and available in public docker repository called dockerhub/dockerstore.
+		-For example, you can find images of most common OSs, DBs and other services and tools.
+		-Once you identify the image you need and install docker on your host, bringing up application is as easy as running a docker run command with name of image. For example:
+			-docker run anisible
+			-docker run mongodb
+			-docker run nodejs
+
+-Container vs Image
+	-An Image is a package or a template (just like VM template). It is used to create one or more containers.
+	-Containers are running instances of images that are isolated and have their own environment and set of processes.
+
+-Docker in DevOps
+	-Traditionally developers develop applications and then they hand it over to Operations team to deply and manage it in production environments. They do that providing set of instructions (how host must be setup, pre-requisites to be installed on host, how to configure dependencies, application etc). As Ops team did not developed application, they struggle in setting it up. When they hit an issue, they work with developer to solve it.
+	-With Docker, developers and Operations team work hand in hand to transform the guide into a docker file with both of their requirements. This docker file is then used to create an image for their application. This image now run on any host with docker installed on it. Now Ops team can simply use image to deploy application.
+	
+-Docker Editions
+	-Community Edition
+		-Free images
+		-Available on Linux, MAC, Windows, Cloud (AWS, Azure)
+		-For Mac/Windows users
+			-Install linux VM using Virtual Box 
+			-Install Docker Desktop for Windows or Mac
+	-Enterprise Edition
+		-Certified and supported container platforms that comes with enterprise addons like image management, image security, universal control plan for managing and orchestrating container runtime.
+	
+-Setup and Install Docker
+	-sudo yum update -y
+	-cat /etc/*-release (uname -a)
+	-Go to https://docs.docker.com/ -> Get Docket -> Select specific linux OS (RHEL)
+	-Uninstall old versions of docker if installed
+		-sudo yum remove docker docker-latest docker-client docker-client-latest docker-common docker-logrotate docker-latest-logrotate docker-engine
+		-The contents of /var/lib/docker/, including images, containers, volumes, and networks, are preserved. The Docker Engine - Community package is now called docker-ce.
+	-You can install Docker Engine - Community in different ways, depending on your needs:
+		-Install using the repository: Most users set up Docker’s repositories and install from them, for ease of installation and upgrade tasks. This is the recommended approach.
+			-Before you install Docker Engine - Community for the first time on a new host machine, you need to set up the Docker repository. Afterward, you can install and update Docker from the repository.
+			-Set up the repository
+				-Install required packages
+					-sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+				-Use the following command to set up the stable repository
+					-sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+				-These repositories are included in the docker.repo file above but are disabled by default. You can enable them alongside the stable repository. The following command enables the nightly repository.
+					-sudo yum-config-manager --enable docker-ce-nightly
+				-To enable the test channel, run the following command:
+					-sudo yum-config-manager --enable docker-ce-test
+				-You can disable the nightly or test repository by running the yum-config-manager command with the --disable flag. To re-enable it, use the --enable flag. The following command disables the nightly repository.
+					-sudo yum-config-manager --disable docker-ce-nightly
+			-Install Docker Engine - Community
+				-Install the latest version of Docker Engine - Community and containerd, or go to the next step to install a specific version:
+					-sudo yum install docker-ce docker-ce-cli containerd.io
+					-If prompted to accept the GPG key, verify that the fingerprint matches 060A 61C5 1B55 8A7F 742B 77AA C52F EB6B 621E 9F35, and if so, accept it.
+					-If you have multiple Docker repositories enabled, installing or updating without specifying a version in the yum install or yum update command always installs the highest possible version, which may not be appropriate for your stability needs.
+				-List and sort the versions available in your repo. This example sorts results by version number, highest to lowest, and is truncated:
+					-yum list docker-ce --showduplicates | sort -r
+				-Start Docker
+					-sudo systemctl start docker
+				-Verify that Docker Engine - Community is installed correctly by running the hello-world image.
+					-sudo docker run hello-world
+		-Install using a package: Some users download the RPM package and install it manually and manage upgrades completely manually. This is useful in situations such as installing Docker on air-gapped systems with no access to the internet.
+			-If you cannot use Docker’s repository to install Docker, you can download the .rpm file for your release and install it manually. You need to download a new file each time you want to upgrade Docker Engine - Community.
+				-Go to https://download.docker.com/linux/centos/7/x86_64/stable/Packages/ and download the .rpm file for the Docker version you want to install. To install a nightly or test (pre-release) package, change the word stable in the above URL to nightly or test
+				-Install Docker Engine - Community, changing the path below to the path where you downloaded the Docker package.
+					-sudo yum install /path/to/package.rpm
+					-Docker is installed but not started. The docker group is created, but no users are added to the group.
+				-Start Docker
+					-sudo systemctl start docker
+				-Verify that Docker Engine - Community is installed correctly by running the hello-world image.
+					-sudo docker run hello-world
+		-Install using the convenience script: In testing and development environments, some users choose to use automated convenience scripts to install Docker.
+			-Convenience script is the script that automates entire installation process.
+			-Docker provides convenience scripts at get.docker.com and test.docker.com for installing edge and testing versions of Docker Engine - Community into development environments quickly and non-interactively. The source code for the scripts is in the docker-install repository.
+				-curl -fsSL https://get.docker.com -o get-docker.sh
+				-sudo sh get-docker.sh
+				-If you would like to use Docker as a non-root user, you should now consider adding your user to the “docker” group with something like:
+					-sudo usermod -aG docker your-user
+					-Adding a user to the “docker” group grants them the ability to run containers which can be used to obtain root privileges on the Docker host.
+			-Check docker version
+				-sudo docker version
+			-Go to https://hub.docker.com/ => search for "whalesay" => docker/whalesay
+				-sudo docker run docker/whalesay cowsay Hello-World!
+	
+	
+
+-Basic docker commands
+	-Run commands from image: docker run <image_name>
+	-List running container: docker ps
+	-List stopped/running container: docker ps -a
+	-Stop container: docker stop <container_name/id>
+	-Delete stopped/exited container: docker rm <container_name/id>
+	-List images: docker images
+	-Delete image: docker rmi <image_name/id>
+	-Delete all dependent containers to remove image. You must stop and delete containers of an image before deleting an image.
+	-Pull image: docker pull <image_name>
+	-Unlike VM, containers are not meant to host an OS. Containers are meant to run a specific task (or process) like to host instance of application server/database or carry some computation or analysis task. Once task complete, container exists.
+	-Container exists as long as process under it is alive.
+	-If image is not running any process/service, you could instruct docker to run a process using docker run command.
+		-docker run ubuntu sleep 5
+	-Execute command on running container: docker exec <container_name/id> <command>
+	-Run container in detach mode: docker run -d <image_name>
+	-Attach to running container: docker attach <container_name/id>
+
+
+-Docker Run
+	-To run older or specific version of image: docker run redis:4.0
+		-This 4.0 is called as TAG.
+		-If you don't specify tag, docker pull latest version of that image.
+	-By-default docker container does not listen to a standard input. Even though, you are attached to its console, it is not able to read any input from you. It doesn't have terminal to read input from. It run in an non-interactive mode.
+	-If you want to provide input, you must map standard input of your host to the docker container using -i parameter (interactive mode).
+		-docker run -i <image_name>
+	-Attach container terminal to host terminal using t option.
+		-docker run -it <image_name>
+	-Port Mapping
+		-docker run -p <host_port>:<container_port> <image_name>
+	-Volume mapping
+		-docker run -v <host_directory>:<container_directory> <image_name>
+	-Inspect Container
+		-docker inspect  <container_name/id>
+	-Container Logs
+		-docker logs <container_name/id>
+		
+		
+		
+-Docker images
+	-Create docker file named Dockerfile and write down instruction to setup application in it (dependencies, code, entrypoint of application etc).
+	-Build image: docker build . -t <tag-name-of-image>
+	-Push image on public docker hub registry: docker push <image_name>
+	-Dockerfile
+		-Is a file written in specific format that docker can understand (In instruction and argument format).
+		-Instructions: FROM, RUN, COPY, ENTRYPOINT etc
+		-FROM: Defines base OS for the container. All docker files must start from FROM instruction.
+		-RUN: Run particular command on base images when you are creating image itself. Install all dependencies. 
+		-COPY: Copy files from local system onto the docker image
+		-ENTRYPOINT: Entrypoint allows us to specify a command that will be run when image will be run as container.
+		-ENV: Set environment variable
+		-EXPOSE: Expose port
+		-CMD: List of think to run within any container when it is instantiated based on an image.
+		-
+	-Layered architecture
+		-When docker builds images, it build them in layered architecture.
+		-Each line of instruction creates a new layer in the docker image with just the changes from previous layer.
+		-All the layers build, are cached. So layered architecture helps you restart docker build from that particular step in case it fails or you need to add new step in image, you dwonld not have to start all over again.
+	-Check all the layers in image: docker history <image_name>
+
+
+
+-Environment variables
+	-(-e) option is used to set environment variables.
+	-docker run -e <environment_variable>=<environment_variable_value> <image_name> 
+	-Inspect environment variables on running container
+		-docker inspect <image_name>   => Search "Env" under "Config" section
+
+
+
+-Command (CMD) and Entrypoint
+	-Container exists as long as process under it is alive. So, Who defines what process runs inside container?
+	-CMD: Defines the command to run when container starts.
+	-How do you specify a different command when we start the new container. One option is to append a command to the docker run command. It will override the default command specified within image.
+		-docker run <image_name> [COMMAND]
+	-Ways to specify command:
+		-CMD command param1			=> CMD sleep 5
+		-CMD ["command","param1"]	=> CMD ["sleep","5"]
+	-ENTRYPOINT: It specify the command line instruction to run when container starts.
+	-If both CMD and ENTRYPOINT present in file, complete command that run when container starts is: ENTRYPOINT + CMD. For this to work, ENTRYPOINT and CMD should be specified in JSON format.
+	-In case of CMD instruction, command line parameter passed will get replaced entierly.
+	-In case of ENTRYPOINT instruction, command line parameter passed will get appended.
+	-TO modify entrypoint at run time use (--entrypoint) option in docker run command.
+
+
+
+-Docker compose
+	-With docker compose, we could create a configuration file in YAML format called docker-compose.yml and put together different services and options specific to running those services in this file. The we could run "docker-compose up" command to bring-up entire application stack.
+	-docker-compose.yml is applicable to running containers on single docker host.
+	-(--link) is command line option used to link two containers together.
+	-Example:
+		-docker run -d --name=redis redis
+		-docker run -d --name=db postgres:9.4
+		-docker run -d --name=vote -p 5000:80 --link redis:redis voting-app
+			-(--link redis:redis) creates an entry in /etc/hosts file of the voting-app container, adding an entry with hostname redis with internal ip address of redis container.
+		-docker run -d --name=result -p 5001:80 --link db:db result-app
+		-docker run -d --name=worker --link redis:redis --link db:db worker
+		This can be written in docker-compose.yml as:
+			redis:
+			  image:redis
+			db:
+			  image:postgres:9.4
+			vote:
+			  image:voting-app
+			  ports:
+				-5000:80
+			  links:
+				-redis
+			result:
+			  image:result-app
+			  ports:
+				-5001:81
+			  links:
+				-db
+			worker:
+			  image:worker
+			  links:
+				-redis
+				-db
+		-If we want to create image using content of (./vote) directory instead of mentioning image using (image:voting-app), we can use (build:./vote) option. (./vote) directory should contain application code and Dockerfile with instructions to build the images.
+	-docker-compose.yml versions
+		-version 1
+			-Limitation: 
+				-No way to specify specific network. By default, it attaches containers to default bridge network.
+				-No way to specify start-up order of the containers
+		-version 2
+			-Docker compose automatically creates a dedicated bridge network for this application and then attaches all containers to that network. All container then able to communicate with eachother using their service names. So you don't need to use links in version 2 of docker compose.
+				-Example:
+					version:2
+					services:
+					  result:
+						image:result
+						networks:
+						  -front-end
+						  -back-end
+					networks:
+					  front-end:
+					  back-end:
+			-If you want to specify start-up order of the application, you can specify dependency using "depends_on" property.
+		-version 3
+			-Comes with support for docker swarm.
+
+
+
+-Docker Registry
+	-Central repository for all images.
+	-Image naming convension
+		-(User/Account name)/(Image/Repository name)
+		-For exmaple: nginx means nginx/nginx
+	-If we did not specify from where to fetch image, it is assumed from docker default registry, dockerhub, DNS name for which is docker.io
+		-docker.io/nginx/nginx
+	-Other populare registries are gcr.io/ where kubernetes related images are stored.
+	-Private Registry
+		-To run a container using an image from private registry, you first login to your private registry using docker login command, inptu your credentials.
+			-docker login private-registry
+		-Run the application using private-registry as part of image name.
+			-docker run private-registry.io/apps/internal-app
+	-Deploy Private Registry
+		-How to deploy private registry within your organization?
+		-Docker registry is an application which is available as an docker image, name of the image is registry and exposes the API on port 5000.
+			-docker run -d -p 5000:5000 --name registry registry:2
+		-How to push image to private registry
+			-Use docker image tag command to tag the image with private registry URL in it.
+				-docker image tag my-image localhost:5000/my-image
+			-Push image to local private registry using command
+				-docker push localhost:5000/my-image
+			-To pull image:
+				-docker pull localhost:5000/my-image
+		
+
+
+-Docker engine
+	-Docker engine is simply host with docker installed on it.
+	-When we install docker on linux host, we actually install 3 components:
+		-Docker Deamon
+			-Back-ground process that manages docker objects such as images, containers, volumes and networks.
+		-REST API Server
+			-API interface that programs can used to talk to the deamon and provide instructions.
+			-You can create your own tools using these REST APIs.
+		-Docker CLI
+			-Command line interface that we were using.
+			-It uses REST APIs to talk with docker daemon.
+			-Docker CLI need not to be on same host as that of docker daemon. Docker CLI can exists on other host and still communicate with docker engine using REST APIs simply using -H command
+				-docker -H=remote-docker-engine:2375
+				-Example: docker -H=remote-docker-engine:2375 run nginx
+	-Containerization
+		-Docker uses namespaces to isolate workspaces.
+		-Process IDs, network, inter-process communication, mounts, unix time sharing systems are created in their own namespace thereby providing isolation between containers.
+		-Namespace isolation technique: Namespace - PID (Process Id namespaces)
+			-Whenever a linux system boots up, it start with a process id 1. This is the root process and kicks-off all other processes in the system. By the time system boots up completely, we have handful of processes running. Process Id's are unique and 2 processes can not have same PID's.
+			-When we create a container which is like a child system within the current system, the child system needs to thing that it an independent system on its own and it has itw own set of processes originating from the root process with process id of 1.
+			-But there is no hard isolation between container and underlying host, so processes running on containers are nothing but the processes running on underlying host. And so two processes can not have same process id of 1. This is where namespace come into play.
+			-With Process-ID namespaces, each process can have multiple process id's associated with it.
+			-When a process is started on container, it is actually a set of process on host and it get next available process id. However they also get a different process id in container which is only visible inside the container. So container thinks, it has its own root process tree and so it is an independant system. 
+	-cgroups
+		-Containers share same CPU and Memory resources.
+		-How many resources are dedicated to the host and the containers? How does docker manages are share resources between the containers?
+		-By default, there is no restrictions on how much resources a container can use and hence a container may end-up utilizing all resources on the underlying host.
+		-There is a way to restrict the amount of CPU and memory a container can use. Docker uses cgroups (control groups) to restrict amount of hardware resources allocated to a container. This can be done by providing --cpu option to docker run command.
+			-docker run --cpu=.5 ubuntu => This will insure that container will not use more than 50% of host CPU at any given time.
+			-docker run --memory=100m ubuntu => 100mb will be used for container
+			
+			
+-Docker Storage
+	-File System
+		-How does docker stores data on local file system?
+			-When you install docker it create file structure:
+				-/var/lib/docker
+					-aufs
+					-containers
+					-image
+					-volumes
+		-Layered architecture
+			-Each line of instruction in the docker file, creates a new layer in docker image with just a changes from previous layer.
+			-Since each layer stores the changes from previous layer, it is reflected in size as well.
+			-Advantage of layered architecture:
+				-If there are two dockerfile containing same first three instructions and total instructions in each dockerfile are 5. Then we build first dockerfile, docker creates 5 layers, one for each instruction. When we build second dockerfile, it will not again create new layers for first threee instruction, it will use first three layers from cache and will create layer for only next two instructions.
+				-This way docker builds images faster and efficiently saves disk space.
+				-This is also applicable, if you want to update your application code. When you update your application code, docker simply re-uses all the previous layers from the cache and quickly rebuilds the application image by updating the latest source code thus saving lot of time during rebuilds and updates.
+				-When you create docker container using above docker image using docker run command, docker creates container based on these 5 layers, and creates new writable layer on top of image layer. Writable layer is used to store data created by container such as application log files, temporary files generated by container etc. Life of this layer is only till container is alive. When container is destroyed, all the changes and data will be destroyed.
+				-Image layer is shared by all the containers created by an image and it is read-only. So files in the image layers can not be modified by containers. Does it mean you can not modify application code inside container? No, you can modify file but before modifying the file, docker automatically creates a copy of file in container layer and hence user will be modifying different version of file in read write layer (container layer). This is called COPY-ON-WRITE mechanism.
+				-Image layer is read only that means files in image layer will not be modified in the image itself, so that image will remain same all the time until you re-build the image using docker build command.
+	-Volumes
+		-Create volume using "docker volume create data_volume" command, it create a folder named "data_volume" in "/var/lib/docker/volumes/" directory.
+			-/var/lib/docker
+				-volumes
+					-data_volume
+		-Then we can mount this volume inside docker container read write layer using -v option
+			-docker run -v data_volume:/var/lib/mysql mysql
+		-Types of mounting
+			-Bind mounting
+				-docker run -v /data/mysql:/var/lib/mysql mysql    => Complete directory path, any location on docker host
+			-Volume mounting
+				-docker run -v data_volume:/var/lib/mysql mysql    => Path relative to default volume path "/var/lib/docker/volumes"
+		-(-v) is the old way to mount volume, new option is (--mount), so above command can be written as:
+			-docker run --mount type=bind,source=/data/mysql,target=/var/lib/mysql mysql
+	-Storage drivers
+		-Who is responsible for all this operations, maintaining layered architecture, creating writable layer, moving files across layers to enable COPY-ON-WRITE etc? => It is the storage drivers.
+		-Docker uses storage drivers to enable layered architecture.
+		-Some of the common storage drivers are:
+			-AUFS
+			-ZFS
+			-BTRFS
+			-Device Mapper
+			-Overlay
+			-Overlay2
+		-Selection of storage drivers depends on underlying OS in use.
+			-Ubuntu = default AUFS
+			-Docker select based storage driver depending on Operating System.
+			-Different storage driver provides different performance and stability characteristics. So you may want to choose one that meets need of your application and organization.
+		-To check which storage driver is used. It list other parameters as well like root directory etc
+			-docker info
+		-Each storage driver store data in different format, you can get more details from https://docs.docker.com/storage/storagedriver/aufs-driver/ 
+	-docker history <imageid> 
+		-Command will show you list of commands followed to build that image
+	-If you want to build docker image using file name which is other than Dockerfile, you can use -f flag.
+		-docker build . -f <file-name> -t <image-name>
+	-docker system df
+		-Shows disk consumption by images, containers and local volumes.
+	-docker system df -v
+		-This will show per image disk space consumption 
+
+
+-Docker Networking
+	-Default networks
+		-When you install docker, it install three networks automatically
+			-Bridge
+				-Default network a container get attached to.
+				-Private internal network created by docker on the host. All containers are attach to this host by default and they get an internal ip address usually in the range 172.17.* series.
+				-Containers can access each other using this internal ip address.
+				-To access any of the container to outside work, map container ports to ports on docker host.
+			-host
+				-Another way to access the containers externally, is to associate the container to the host network. This takes out any isolation between the docker host and the container.
+				-This mean that we can not run two containers on same port as they are directly associated with host network.
+			-none
+				-Containers are not attached to any network and does't have access to outside world and other containers. They run in an isolated network.
+				-
+		-If you want to attach some other network with container, specify network with command line paramater --network
+			-docker run Ubuntu --network=none
+	-User-defined networks
+		-List all networks: docker network ls
+		-Create new network: docker network create --driver bridge --subnet <182.18.0.0/16> --gateway <182.18.0.1> <custom-isolated-network>
+		-Get details of network: docker network inspect <network-name>
+	-Inspect network
+		-How to see network settings are ip address assigned to existing containers
+			-docker inspect <name/id of container>
+	-Embedded DNS
+		-Containers are reach each other using their names.
+		-Docker has a built-in DNS server that helps the containers to resolve each other using container names.
+	-Network Namespaces
+		-How does docker implement networking? Whats the technology behind it? How containers are isolated in the host? -> Docker uses network namespaces that creates separate namespace for each container. It then uses virtual ethernet pair to connect containers together.
+		
+		
+		
+-Docker on Windows
+	-Containers share underlying linux kernel and as a result we can not have windows container on linux host or viceversa.
+	-Docker on Windows options: Running Linux docker containers on Windows host
+		-1) Docker on Windows using Docker Toolbox: Docker on Linux VM on Oracle Virtual Box on Windows
+			-What we used to do earlier (Oracle VirtualBox -> Linux VM -> Docker)
+				-Install Oracle VirtualBox in Windows system
+				-Deploy linux VM on it such as ubuntu or debian
+				-Then install docker on linux VM
+				-Docker Toolbox Requirements
+					-64-bit OS
+					-Windows 7 or above
+					-Virtualization is enabled
+			-Docker Toolbox provides us with following set of tools. It solves all above steps require to install docker.			
+				-Oracle VirtualBox
+				-Docker Engine
+				-Docker Machine
+				-Docker Compose
+				-Kinematic GUI
+		-2) Docker Desktop for Windows: Docker on Linux VM on Windows Hyper-V on Windows
+			-Mycrosoft HyperV Hypervisor -> Linux VM -> Docker 
+			-Only supported for Windows 10 enterprise/professional edition and Windows Server 2016 because both these OS comes with HyperV support by-default.
+	-With Windows Server 2016 microsoft announced support for windows containers first time.
+	-When you work with "Docker Desktop for Windows", default option is to work with linux containers. If you want to explicitly work with windows containers then you should explicitly "Switch to Windows containers...".
+	-Windows containers
+		-In early 2016 microsoft announced windows containers. Now you could create Windows based images and run Windows containers on a Windows server just like how you would run Linux containers on a Linux system.
+		-There are two types of containers in windows:
+			-The first one is a "Windows server" container which works exactly like Linux containers where the OS kernel is shared with the underlying operating system to allow better security boundary between containers and to allow colonels with different versions and configurations to coexist.
+			-The second option was introduced known as the "Hyper-V Isolation". With Hyper-V Isolation, each container is run within a highly optimized virtual machine guaranteeing complete kernel isolation between the containers and the underlying host.
+		-Base images for windows:
+			-Windows Server Core
+				-The Windows Server Core though is not as light weight as you might expect it to be.
+			-Nano Server
+				-Nano Server is a headless deployment option for Windows Server which runs at a fraction of size of the full operating system.
+				-You can think of this like the Alpine image in Linux.
+		-Windows containers are supported on:
+			-Windows Server 2016
+			-Nano Server
+			-Windows 10 Profiessional and Enterprise (Hyper-V isolated containers)
+	-VirtualBox and Hyper-V can not co-exists on the same windows host.
+	-Docker on Windows Documentation: https://docs.docker.com/docker-for-windows/
+	-Docker For Windows Download: https://www.docker.com/docker-windows
+	-Docker Toolbox Download: https://www.docker.com/products/docker-toolbox
+	
+	
+	
+-Docker on Mac
+	-There are 2 options:
+		-Docker on Mac using Docker Toolbox
+			-It is Docker on Linux VM created using virtual box on Mac.
+			-It purely runs Linux containers on a Mac OS.
+			-Docker tool box contains a set of tools like Oracle virtualbox, Docker engine, Docker machine, Docker compose and a user interface called Kinematic GUI.
+			-When you download and install the docker toolbox executable it installs virtual box, deploys lightweight VM called boot Docker which has Docker running in it already.
+			-This requires Mac OS 10.8 or newer 
+		-Docker Desktop for Mac
+			-With "Docker Desktop for Mac", we take out Oracle virtual box and use Hyperkit virtualization technology.
+			-During the installation process for docker for Mac, it will still automatically create a Linux system underneath but this time it is created on HyperKit instead of Oracle virtual box and have Docker running on that system.
+			-This requires Mac OS 10.12 or newer and in my mind and the Mac hardware must be 2010 or newer model.
+	-As of now there are no Mac based containers.		
+			
+			
+
+-Container Orchestration
+	-Why Orchestrate?
+		-With docker, you can run single instance of application with simple docker run command.
+		-When load increases, you need to launch new instance of application yourself.
+		-You need to keep close look at load and performance of your application and deploy additional instances if required.
+		-What about the health of application itself? If host goes down, all the containers on all that host goes down.
+		-How to solve all above issues? You will need dedicated engineer who can monitor state, performance and health of the containers and take necessary action to remediate the situation.
+		-But when you have lots of containers, this is not possible.
+		-Container Orchestration is the solution for above problems. It consists of set of tools and scripts that can help to host containers in production environment.
+	-Typical Container Orchestration solution consists of multiple docker host that can host containers.
+	-Container Orchestration solution allows you to deploy hundreds/thousands of instances of your application with single command
+	-Following command used by docker swarm
+		-docker service create --replicas=100 nodejs
+	-Some Orchestration solutions allows you to automatically scale-up instances when users increases and scale-down instances when users decreases.
+	-Some solution also support addition of hosts.
+	-Solutions also provides support for 
+		-advanced networking between these containers across different hosts
+		-load balancing user requests across different hosts
+		-sharing storage between hosts
+		-Configuration management and security within cluster
+	-Solutions available:
+		-Docker Swarm
+			-Lacks some advanced auto-scaling features required for complex production grade applications
+		-kubernetes from Google
+			-Bit difficult to setup and get started but provide lots of options to customize deployments and has support for many different vendors.
+			-Supported on all public cloud providers: AWS, Azure, GCP
+		-MESOS
+			-Difficult to setup and get started, but supports many advanced features
+	
+	
+	
+-Docker Swarm
+	-With Docker Swarm, you can combine multiple hosts into a single cluster.
+	-Docker swarm takes care of distribution of your applications on different hosts for high availability and load balancing.
+	-To setup docker swarm:
+		-Dedicate one host as "Swarm Manager"
+		-Others as "Worker"
+	-Run "docker swarm init" command on swarm manager and it will initialize swarm manager. The output will also provide the command to join workers. So copy the command and run it on worker node to join the swarm manager. Now you are ready to creates services and run them on swarm cluster.
+	-The key component of docker orchestration is the "docker service". Docker services are one or more instances of a single application or service that run across the nodes in the swarm cluster.
+	-For example:	docker service create --replicas=3 my-web-server
+		-When we run above command on manager node, it will run 3 instances of my-web-server across the cluster
+		
+		
+		
+		
+-Kubernetes Introduction
+	-Using kubernetes cli known as kubectl (kube control), you can run hundreds/thousand instance of an application using single command
+		-kubectl run --replica=1000 my-web-server
+	-Kubernetes can scale it to 2000 using single command
+		-kubectl scale --replica=2000 my-web-server
+	-You can configure scale-up and scale-down automatically depending on user load.
+	-Kubernetes can upgrade these 2000 instances of application in a rolling upgrade fashion one at a time with a single command
+		-kubectl rolling-update my-web-server --image=web-server:2
+	-If something goes wrong, it can help you to rollback these images with single command.
+		-kubectl rolling-update my-web-server --rollback
+	-Kubernetes can help you to test new features of your application by updating just percentage of these instances through A-B testing method.
+	-Kubernetes open architecture provides support for many network and storage vendors.
+	-Supports variety of authentication and authorization mechanisms.
+	-All cloud providers have native support for kubernetes.
+	-Whats relation between docker and kubernetes?
+		-Kubernetes uses docker host to host applications in the form of docker containers.
+		-It need not to be docker always, kubernetes also support such as rocket or cri-o.
+		-CRI-O
+			-CRI-O is an implementation of the Kubernetes CRI (Container Runtime Interface) to enable using OCI (Open Container Initiative) compatible runtimes. 
+			-It is a lightweight alternative to using Docker as the runtime for kubernetes. 
+			-It allows Kubernetes to use any OCI-compliant runtime as the container runtime for running pods. 
+			-Today it supports runc and Kata Containers as the container runtimes but any OCI-conformant runtime can be plugged in principle.
+			-CRI-O supports OCI container images and can pull from any container registry.
+		-rkt (Rocket)
+			-rkt is an application container engine developed for modern production cloud-native environments. 
+			-It features a pod-native approach, a pluggable execution environment, and a well-defined surface area that makes it ideal for integration with other systems.
+			-The core execution unit of rkt is the pod, a collection of one or more applications executing in a shared context
+	-Kubernetes architecture
+		-Kubernetes cluster consists of set of nodes.
+		-Node (Minions): 
+			-Node is a machine virtual of physical on which kubernetes software is running.
+			-Node is a worker machine where containers will be launched by kubernetes.
+		-Cluster:
+			-Cluster is set of nodes grouped together.
+			-Who is responsible for managing the cluster? Where is information about members of the cluster is stored? etc, that where master comes in.
+		-Master
+			-Master is node with kubernetes control plane components installed.
+			-Master watches nodes in the cluster and responsible for actual orchestration of containers on worker nodes.
+	-Kubernetes components
+		-API Server
+			-Act as front-end for kubernetes.
+			-Users, management devices, CLIs all talk to the API Server to interact with kubernetes cluster.
+			-Responsible for implementing logs in the cluster insuring there is no conflicts between the masters.
+		-etcd server
+			-Distributed reliable key-value store used by kubernetes to store all data used to manage the cluster.
+		-kubelet service
+			-Agent that runs on each node on the cluster.
+			-Agent is responsible for making sure that the containers on the node are running as expected.
+		-Container Runtime engine (like docker)
+			-Is the underlying software used to run containers.
+		-Controllers
+			-Is the brain behind orchestration.
+			-Responsible for noticing and responding when nodes, containers or endpoints goes down. The controllers makes decision on bringing up new containers in such cases.
+		-Schedulers
+			-Responsible for distributing work/container across multiple nodes.
+			-It looks for newly created containers and assigns them to nodes.
+	-kubectl
+		-Kubernetes CLI used to manage and deploy applications on kubernetes cluster, to get cluster related informarion, to get node status etc.
+		-Deploy application: kubectl run hello-minikube
+		-View cluster information: kubectl cluster-info
+		-List nodes in the cluster: kubectl get nodes
+		-kubectl run my-web-app --image=my-web-app --replicas=100
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
